@@ -2,6 +2,9 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import folium
+from streamlit_folium import st_folium
+from geopy.geocoders import Nominatim
 
 # Set the title of the app
 st.title("What ever title you want")
@@ -58,3 +61,37 @@ with st.container():
     }
     df_table = pd.DataFrame(data)
     st.write(df_table)
+
+
+# Block 5: Map
+with st.container():
+    st.header("🗺️ Carte de Communes")
+    # Champ de saisie
+    commune = st.text_input("Entrez le nom d'une commune", "Paris")
+
+    # Géolocalisation avec Nominatim
+    if commune:
+        geolocator = Nominatim(user_agent="carte-streamlit-app")
+        try:
+            location = geolocator.geocode(commune)
+
+            if location:
+                latitude = location.latitude
+                longitude = location.longitude
+
+                # Création de la carte Folium
+                m = folium.Map(location=[latitude, longitude], zoom_start=12)
+
+                # Ajout d'un marqueur
+                folium.Marker(
+                    [latitude, longitude],
+                    tooltip=commune,
+                    popup=f"📍 {commune}",
+                ).add_to(m)
+
+                # Affichage de la carte
+                st_folium(m, width=700, height=500)
+            else:
+                st.warning("Commune non trouvée. Veuillez vérifier l'orthographe.")
+        except Exception as e:
+            st.error(f"Une erreur s'est produite : {e}")
